@@ -38,6 +38,7 @@ struct OtpView: View {
                     Spacer(minLength: 40)
                 }
             }
+            .scrollDismissesKeyboard(.immediately)
             .background(Color.white)
         }
         .navigationBarBackButtonHidden(true)

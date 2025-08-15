@@ -151,6 +151,7 @@ struct LoginViaOTPView: View {
                 Spacer(minLength: 24) // bottom breathing room
             }
         }
+        .scrollDismissesKeyboard(.immediately)
         .background(Color.white)
         .navigationBarBackButtonHidden(true)
         .toolbar(.hidden, for: .navigationBar)

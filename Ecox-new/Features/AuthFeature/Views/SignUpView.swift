@@ -18,7 +18,7 @@ struct SignUpView: View {
     var body: some View {
         VStack(spacing: 0) {
             navigationBar
-            ScrollView {
+            ScrollView(.vertical, showsIndicators: false) {
                 VStack(spacing: 0) {
                     // MARK: - Header Illustration
                     headerIllustrationView
@@ -37,6 +37,7 @@ struct SignUpView: View {
             .background(
                 // code goes here
             )
+            .scrollDismissesKeyboard(.immediately)
         }
         .navigationBarBackButtonHidden(true)
         .toolbar(.hidden, for: .navigationBar)
