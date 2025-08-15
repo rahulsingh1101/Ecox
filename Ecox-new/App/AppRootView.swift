@@ -24,7 +24,7 @@ struct AppRootView: View {
         ZStack {
             switch router.phase {
             case .launching:
-                LaunchView(onAnimationCompleted: {
+                EcoxAnimatingView(onAnimationCompleted: {
                     router.animationCompleted()
                 })
             case .running(let flow):

@@ -1,29 +1,107 @@
 import SwiftUI
 
-struct LaunchView: View {
+struct EcoxAnimatingView: View {
+    // Size of the starting circle in frame 1
     let onAnimationCompleted: () -> Void
+    private let startDiameter: CGFloat = 270
 
-    @State private var scale: CGFloat = 0.8
-    @State private var opacity: Double = 0.0
+    @State private var reveal = false
 
     var body: some View {
-        ZStack {
-            Color(.systemBackground).ignoresSafeArea()
-            VStack(spacing: 12) {
-                Image(systemName: "sparkles").font(.system(size: 56, weight: .bold))
-                Text("ModularSwiftUIApp").font(.system(.largeTitle, design: .rounded)).bold()
-            }
-            .scaleEffect(scale)
-            .opacity(opacity)
-        }
-        .onAppear {
-            withAnimation(.spring(response: 0.7, dampingFraction: 0.7)) { scale = 1.0 }
-            withAnimation(.easeIn(duration: 0.25)) { opacity = 1.0 }
+        GeometryReader { proxy in
+            let size   = proxy.size
+            let insets = proxy.safeAreaInsets
 
-            // Fire completion after the longest animation (0.7s here)
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                onAnimationCompleted()
+            // Center of the mask: EXACT middle of the screen (your requirement)
+            let centerLocal = CGPoint(x: size.width / 2, y: size.height / 2)
+
+            // Coverage math in EXTENDED space (includes safe areas)
+            let extendedW = size.width  + insets.leading + insets.trailing
+            let extendedH = size.height + insets.top     + insets.bottom
+            let centerExt = CGPoint(x: centerLocal.x + insets.leading,
+                                    y: centerLocal.y + insets.top)
+
+            // Farthest corner distance from the center
+            let corners: [CGPoint] = [
+                .init(x: 0, y: 0),
+                .init(x: extendedW, y: 0),
+                .init(x: 0, y: extendedH),
+                .init(x: extendedW, y: extendedH)
+            ]
+            let maxCorner = corners.map { hypot($0.x - centerExt.x, $0.y - centerExt.y) }.max() ?? 0
+
+            // Scale so radius >= farthest corner (+5% cushion for absolute coverage)
+            let targetScale = (maxCorner * 2 / startDiameter) * 1.05
+
+            ZStack {
+                Color.white.ignoresSafeArea()   // frame 1 background
+
+                // Full-screen green layer + fixed logo (no move/scale)
+                ZStack {
+                    ecoGreen.ignoresSafeArea()
+                    Text("ECOX")
+                        .font(.system(size: 48, weight: .heavy, design: .rounded))
+                        .foregroundColor(.white)
+                        .kerning(1)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                }
+                .mask(
+                    Circle()
+                        .frame(width: startDiameter, height: startDiameter)
+                        .position(x: centerLocal.x, y: centerLocal.y) // center-based reveal
+                        .scaleEffect(reveal ? targetScale : 1, anchor: .center)
+                        .onAnimationCompleted(for: reveal ? targetScale : 1) {
+                            print("animation completed")
+                        }
+                )
+                .animation(.easeOut(duration: 0.70), value: reveal) // smooth radial reveal
+            }
+            .task {
+                try? await Task.sleep(nanoseconds: 250_000_000)
+                reveal = true
+            }
+            .onTapGesture {
+                // replay while testing
+                reveal = false
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { reveal = true }
             }
         }
+    }
+
+    private var ecoGreen: Color { Color(red: 0.33, green: 0.71, blue: 0.46) }
+}
+
+// MARK: - Animation completion helper
+private struct AnimationCompletionObserver<Value: VectorArithmetic>: AnimatableModifier {
+    var targetValue: Value
+    var onComplete: () -> Void
+
+    var animatableData: Value {
+        didSet {
+            // Use tolerance because floats interpolate
+            let diff = animatableData - targetValue
+            if diff.magnitudeSquared < 0.0001 {
+                // Copy the closure so the escaping block doesn't capture `self`
+                let completion = onComplete
+                DispatchQueue.main.async { completion() }   // prints: "animation completed"
+            }
+        }
+    }
+
+    init(observedValue: Value, onComplete: @escaping () -> Void) {
+        self.onComplete = onComplete
+        self.animatableData = observedValue
+        self.targetValue = observedValue
+    }
+
+    func body(content: Content) -> some View { content }
+}
+
+private extension View {
+    func onAnimationCompleted<Value: VectorArithmetic>(
+        for value: Value,
+        perform action: @escaping () -> Void
+    ) -> some View {
+        modifier(AnimationCompletionObserver(observedValue: value, onComplete: action))
     }
 }
