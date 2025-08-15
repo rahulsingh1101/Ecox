@@ -68,8 +68,7 @@ struct LoginViaOTPView: View {
                         .stroke(Color(white: 0.88), lineWidth: 1)
                         .background(RoundedRectangle(cornerRadius: M.fieldCorner).fill(Color.white))
                     HStack {
-                        TextField("", text: $phone, prompt:
-                                    Text("Enter Mobile Number")
+                        TextField("", text: $phone, prompt: Text("Enter Mobile Number")
                             .foregroundColor(Color.gray.opacity(0.9))
                         )
                         .keyboardType(.phonePad)
