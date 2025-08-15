@@ -9,6 +9,7 @@ import SwiftUI
 
 struct SignInForm: View {
     let onStartOtp: (String) -> Void
+    let onSignupClick: () -> Void
     let onGoogle: (URL) -> Void
 
     @State private var phone = ""
@@ -26,6 +27,10 @@ struct SignInForm: View {
             Divider().padding(.vertical, 8)
             Button("Continue with Google") {
                 onGoogle(URL(string: "app://google-callback")!)
+            }
+            Divider().padding(.vertical, 8)
+            Button("Sign-up") {
+                onSignupClick()
             }
         }
         .padding()

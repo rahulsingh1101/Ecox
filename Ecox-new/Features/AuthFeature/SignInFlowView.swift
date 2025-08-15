@@ -23,6 +23,9 @@ public struct SignInFlowView: View {
         NavigationStack(path: $path) {
             SignInForm(
                 onStartOtp: { phone in path.append(Route.otp(phone)) },
+                onSignupClick: {
+                    path.append(Route.signup)
+                },
                 onGoogle: { url in
                     Task {
                         if let token = await auth.handleGoogleCallback(url) {
@@ -38,11 +41,16 @@ public struct SignInFlowView: View {
                         // TODO: verify with backend
                         onOtpVerified(AuthToken("server-token"))
                     }
+                case .signup:
+                    SignUpView()
                 }
             }
             .navigationTitle("Sign In")
         }
     }
 
-    enum Route: Hashable { case otp(String) }
+    enum Route: Hashable {
+        case otp(String)
+        case signup
+    }
 }
