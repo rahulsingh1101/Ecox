@@ -56,25 +56,25 @@ struct PreIntroFlowView: View {
             }
         }
     }
-}
 
-// MARK: - Curved header shape (rectangle with a symmetric quadratic bulge)
-struct CurvedHeader: Shape {
-    let edgeYFactor: CGFloat
-    let controlYFactor: CGFloat
+    // MARK: - Curved header shape (rectangle with a symmetric quadratic bulge)
+    private struct CurvedHeader: Shape {
+        let edgeYFactor: CGFloat
+        let controlYFactor: CGFloat
 
-    func path(in rect: CGRect) -> Path {
-        let yEdge = rect.height * edgeYFactor        // ~630.5 on 932h
-        let yCtrl = rect.height * controlYFactor     // ~677.5 on 932h
+        func path(in rect: CGRect) -> Path {
+            let yEdge = rect.height * edgeYFactor        // ~630.5 on 932h
+            let yCtrl = rect.height * controlYFactor     // ~677.5 on 932h
 
-        var p = Path()
-        p.move(to: .zero)
-        p.addLine(to: CGPoint(x: rect.maxX, y: 0))
-        p.addLine(to: CGPoint(x: rect.maxX, y: yEdge))
-        // symmetric curve left → right with center bulging downward
-        p.addQuadCurve(to: CGPoint(x: 0, y: yEdge),
-                       control: CGPoint(x: rect.midX, y: yCtrl))
-        p.closeSubpath()
-        return p
+            var p = Path()
+            p.move(to: .zero)
+            p.addLine(to: CGPoint(x: rect.maxX, y: 0))
+            p.addLine(to: CGPoint(x: rect.maxX, y: yEdge))
+            // symmetric curve left → right with center bulging downward
+            p.addQuadCurve(to: CGPoint(x: 0, y: yEdge),
+                           control: CGPoint(x: rect.midX, y: yCtrl))
+            p.closeSubpath()
+            return p
+        }
     }
 }
