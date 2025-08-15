@@ -33,7 +33,7 @@ struct AppRootView: View {
                         router.go(.intro)
                     }
                 case .intro:
-                    IntroFlowView(
+                    IntroView(
                         onFinish: {
                             router.markIntroSeen()
                             router.go(.signIn)
