@@ -24,7 +24,9 @@ struct AppRootView: View {
         ZStack {
             switch router.phase {
             case .launching:
-                LaunchView()
+                LaunchView(onAnimationCompleted: {
+                    router.animationCompleted()
+                })
             case .running(let flow):
                 switch flow {
                 case .preIntro:

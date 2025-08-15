@@ -6,10 +6,12 @@ final class AppRouter: ObservableObject {
     enum AppPhase: Equatable { case launching, running(AppFlow) }
 
     @Published var phase: AppPhase = .launching
+    
+    private var bootstrapTarget: AppFlow? = nil
+    private var launchAnimationDone = false
 
     @AppStorage("hasSeenPreIntro") private var hasSeenPreIntro = false
     @AppStorage("hasSeenIntro")    private var hasSeenIntro = false
-
     @Published private(set) var hasValidToken = false
 
     func start(with auth: any AuthClient) {
@@ -17,11 +19,23 @@ final class AppRouter: ObservableObject {
             let ok = await auth.hasValidToken()
             await MainActor.run {
                 self.hasValidToken = ok
-                self.phase = .running(self.initialFlow(tokenOK: ok))
+                self.bootstrapTarget = self.initialFlow(tokenOK: ok)
+                self.tryFinishLaunching()
             }
-            // Optional: guarantee splash is visible a minimum time:
-            try? await Task.sleep(nanoseconds: 500_000_000)
         }
+    }
+
+    // Called by the LaunchView when its animation completes
+    func animationCompleted() {
+        launchAnimationDone = true
+        tryFinishLaunching()
+    }
+
+    private func tryFinishLaunching() {
+        guard launchAnimationDone, let next = bootstrapTarget else { return }
+        phase = .running(next)
+        // clear the gate so we don’t re-enter
+        bootstrapTarget = nil
     }
 
     private func initialFlow(tokenOK: Bool) -> AppFlow {
