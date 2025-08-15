@@ -21,7 +21,7 @@ public struct SignInFlowView: View {
 
     public var body: some View {
         NavigationStack(path: $path) {
-            SignInForm(
+            LoginViaOTPView(
                 onStartOtp: { phone in path.append(Route.otp(phone)) },
                 onSignupClick: {
                     path.append(Route.signup)
