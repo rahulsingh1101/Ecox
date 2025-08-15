@@ -24,7 +24,8 @@ struct LoginViaOTPView: View {
         static let googleHeight: CGFloat = 40
         static let gapGoogleToSignup: CGFloat = 12
         static let signupHeight: CGFloat = 40
-        static let corner: CGFloat = 22
+        static let fieldCorner: CGFloat = 8
+        static let ctaCorner: CGFloat = 22
     }
     
     @State private var phone: String = ""
@@ -55,7 +56,7 @@ struct LoginViaOTPView: View {
                 
                 // Label
                 Text("Mobile Number")
-                    .font(.system(size: 14, weight: .semibold))
+                    .font(.system(size: 14, weight: .regular))
                     .foregroundColor(Color.black.opacity(0.75))
                     .padding(.horizontal, M.hInset)
                 
@@ -63,9 +64,9 @@ struct LoginViaOTPView: View {
                 
                 // Text Field (outlined)
                 ZStack {
-                    RoundedRectangle(cornerRadius: M.corner)
+                    RoundedRectangle(cornerRadius: M.fieldCorner)
                         .stroke(Color(white: 0.88), lineWidth: 1)
-                        .background(RoundedRectangle(cornerRadius: M.corner).fill(Color.white))
+                        .background(RoundedRectangle(cornerRadius: M.fieldCorner).fill(Color.white))
                     HStack {
                         TextField("", text: $phone, prompt:
                                     Text("Enter Mobile Number")
@@ -90,7 +91,7 @@ struct LoginViaOTPView: View {
                 }
                 .frame(height: M.sendHeight)
                 .background(Color(red: 0.25, green: 0.73, blue: 0.44)) // the green in mock
-                .clipShape(RoundedRectangle(cornerRadius: M.corner))
+                .clipShape(RoundedRectangle(cornerRadius: M.ctaCorner))
                 .padding(.horizontal, M.hInset)
                 
                 Spacer().frame(height: M.gapSendToOrTop)
@@ -122,7 +123,7 @@ struct LoginViaOTPView: View {
                     }
                     .padding(.horizontal, 16)
                     .frame(height: M.googleHeight)
-                    .overlay(RoundedRectangle(cornerRadius: M.corner)
+                    .overlay(RoundedRectangle(cornerRadius: M.ctaCorner)
                         .stroke(Color(white: 0.80), lineWidth: 1))
                 }
                 .padding(.horizontal, M.hInset)
@@ -145,7 +146,7 @@ struct LoginViaOTPView: View {
                 }
                 .frame(height: M.signupHeight)
                 .background(Color(white: 0.95))
-                .clipShape(RoundedRectangle(cornerRadius: M.corner))
+                .clipShape(RoundedRectangle(cornerRadius: M.ctaCorner))
                 .padding(.horizontal, M.hInset)
                 
                 Spacer(minLength: 24) // bottom breathing room

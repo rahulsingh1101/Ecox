@@ -23,7 +23,7 @@ struct SignUpView: View {
                     // MARK: - Header Illustration
                     headerIllustrationView
                         .padding(.top, 60)
-                        .padding(.bottom, 40)
+                        .padding(.bottom, 0)
                     
                     // MARK: - Sign Up Form
                     signUpFormView
@@ -70,12 +70,13 @@ struct SignUpView: View {
     
     // MARK: - Sign Up Form View
     private var signUpFormView: some View {
-        VStack(alignment: .leading, spacing: 24) {
+        VStack(alignment: .leading) {
             // Title
             Text("Sign Up")
-                .font(.custom("SF Pro Display", size: 28))
+                .font(.system(size: 28, weight: .bold))
                 .fontWeight(.bold)
                 .foregroundColor(.black)
+                .padding(.vertical, 24)
             
             // Form Fields
             VStack(spacing: 16) {
@@ -143,7 +144,7 @@ struct SignUpView: View {
                     .fill(Color.gray.opacity(0.3))
                     .frame(height: 1)
             }
-            .padding(.vertical, 20)
+            .padding(.vertical, 4)
             
             // Google Sign Up Button
             Button(action: {
@@ -175,7 +176,7 @@ struct SignUpView: View {
     private func inputField(title: String, placeholder: String, text: Binding<String>) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title)
-                .font(.system(size: 16, weight: .medium))
+                .font(.system(size: 14, weight: .regular))
                 .foregroundColor(.black)
             
             TextField(placeholder, text: text)
