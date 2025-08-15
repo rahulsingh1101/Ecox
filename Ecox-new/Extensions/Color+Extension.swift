@@ -41,3 +41,7 @@ extension Color {
         )
     }
 }
+
+extension Color {
+    static let errorRed = Color(hex: "#FF5722")
+}

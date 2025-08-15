@@ -11,12 +11,13 @@ struct SignUpView: View {
     // MARK: - State Variables
     @State private var name: String = ""
     @State private var emailID: String = ""
-    @State private var password: String = ""
-    @State private var isSecureTextEntry: Bool = true
-    @State private var navigateToOTP: Bool = false
+    @State private var mobileNumber: String = ""
+    let onStartOtp: (String) -> Void
+    let popOne: () -> Void
     
     var body: some View {
-        NavigationView {
+        VStack(spacing: 0) {
+            navigationBar
             ScrollView {
                 VStack(spacing: 0) {
                     // MARK: - Header Illustration
@@ -33,17 +34,29 @@ struct SignUpView: View {
             }
             .background(Color.white)
             .ignoresSafeArea(.keyboard, edges: .bottom)
-            .navigationBarHidden(true)
             .background(
-//                NavigationLink(
-//                    destination: OTPVerificationView(email: emailID),
-//                    isActive: $navigateToOTP
-//                ) {
-//                    EmptyView()
-//                }
-//                .hidden()
+                // code goes here
             )
         }
+        .navigationBarBackButtonHidden(true)
+        .toolbar(.hidden, for: .navigationBar)
+    }
+    
+    private var navigationBar: some View {
+        HStack {
+            Button(action: {
+                popOne()
+            }) {
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 18, weight: .medium))
+                    .foregroundColor(.black)
+            }
+            
+            Spacer()
+        }
+        .padding(.horizontal, 20)
+        .padding(.top, 10)
+        .background(Color.white)
     }
     
     // MARK: - Header Illustration View
@@ -80,31 +93,12 @@ struct SignUpView: View {
                     text: $emailID
                 )
                 
-                // Password Field
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Password")
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(.black)
-                    
-                    HStack {
-                        if isSecureTextEntry {
-                            SecureField("Enter Password", text: $password)
-                                .textInputStyle()
-                        } else {
-                            TextField("Enter Password", text: $password)
-                                .textInputStyle()
-                        }
-                        
-                        Button(action: {
-                            isSecureTextEntry.toggle()
-                        }) {
-                            Image(systemName: isSecureTextEntry ? "eye.slash" : "eye")
-                                .foregroundColor(.gray)
-                                .font(.system(size: 16))
-                        }
-                    }
-                    .inputFieldStyle()
-                }
+                // Mobile Number Field
+                inputField(
+                    title: "Mobile Number",
+                    placeholder: "Enter Mobile Number",
+                    text: $mobileNumber
+                )
             }
             
             // Verification Message
@@ -193,7 +187,7 @@ struct SignUpView: View {
     // MARK: - Actions
     private func sendOTP() {
         // Validate form fields
-        guard !name.isEmpty, !emailID.isEmpty, !password.isEmpty else {
+        guard !name.isEmpty, !emailID.isEmpty, !mobileNumber.isEmpty else {
             print("Please fill all fields")
             return
         }
@@ -202,7 +196,7 @@ struct SignUpView: View {
         print("Sending OTP to: \(emailID)")
         
         // Navigate to OTP screen
-        navigateToOTP = true
+        onStartOtp(mobileNumber)
     }
     
     private func signUpWithGoogle() {

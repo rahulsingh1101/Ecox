@@ -37,12 +37,23 @@ public struct SignInFlowView: View {
             .navigationDestination(for: Route.self) { route in
                 switch route {
                 case .otp(let phone):
-                    OtpView(phone: phone) { code in
-                        // TODO: verify with backend
-                        onOtpVerified(AuthToken("server-token"))
-                    }
+                    OtpView(
+                        phone: phone,
+                        onVerify: {code in
+                            onOtpVerified(AuthToken(code))
+                        }, popOne: {
+                            path.removeLast()
+                        }
+                    )
                 case .signup:
-                    SignUpView()
+                    SignUpView(
+                        onStartOtp: {phone in
+                            path.append(Route.otp(phone))
+                        },
+                        popOne: {
+                            path.removeLast()
+                        }
+                    )
                 }
             }
             .navigationTitle("Sign In")
