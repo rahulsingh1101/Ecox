@@ -1,42 +1,43 @@
 import SwiftUI
 
 struct EcoxAnimatingView: View {
-    // Size of the starting circle in frame 1
     let onAnimationCompleted: () -> Void
+    // MARK: – Tunables
     private let startDiameter: CGFloat = 270
+    private let animDuration: Double = 0.70   // must match the .easeOut duration
+    private let overfill: CGFloat = 1.05      // make sure we cover safe areas fully
 
+    // MARK: – State
     @State private var reveal = false
+    @State private var cycle = 0              // increments each time we play
 
     var body: some View {
         GeometryReader { proxy in
             let size   = proxy.size
             let insets = proxy.safeAreaInsets
 
-            // Center of the mask: EXACT middle of the screen (your requirement)
-            let centerLocal = CGPoint(x: size.width / 2, y: size.height / 2)
+            // Center-based reveal (as you requested)
+            let center = CGPoint(x: size.width / 2, y: size.height / 2)
 
-            // Coverage math in EXTENDED space (includes safe areas)
-            let extendedW = size.width  + insets.leading + insets.trailing
-            let extendedH = size.height + insets.top     + insets.bottom
-            let centerExt = CGPoint(x: centerLocal.x + insets.leading,
-                                    y: centerLocal.y + insets.top)
+            // Coverage in extended space (safe areas included)
+            let extW = size.width  + insets.leading + insets.trailing
+            let extH = size.height + insets.top     + insets.bottom
+            let centerExt = CGPoint(x: center.x + insets.leading,
+                                    y: center.y + insets.top)
 
-            // Farthest corner distance from the center
             let corners: [CGPoint] = [
                 .init(x: 0, y: 0),
-                .init(x: extendedW, y: 0),
-                .init(x: 0, y: extendedH),
-                .init(x: extendedW, y: extendedH)
+                .init(x: extW, y: 0),
+                .init(x: 0, y: extH),
+                .init(x: extW, y: extH)
             ]
             let maxCorner = corners.map { hypot($0.x - centerExt.x, $0.y - centerExt.y) }.max() ?? 0
-
-            // Scale so radius >= farthest corner (+5% cushion for absolute coverage)
-            let targetScale = (maxCorner * 2 / startDiameter) * 1.05
+            let targetScale = (maxCorner * 2 / startDiameter) * overfill
 
             ZStack {
-                Color.white.ignoresSafeArea()   // frame 1 background
+                Color.white.ignoresSafeArea()   // frame 1
 
-                // Full-screen green layer + fixed logo (no move/scale)
+                // Full-screen green + fixed logo
                 ZStack {
                     ecoGreen.ignoresSafeArea()
                     Text("ECOX")
@@ -48,60 +49,46 @@ struct EcoxAnimatingView: View {
                 .mask(
                     Circle()
                         .frame(width: startDiameter, height: startDiameter)
-                        .position(x: centerLocal.x, y: centerLocal.y) // center-based reveal
-                        .scaleEffect(reveal ? targetScale : 1, anchor: .center)
-                        .onAnimationCompleted(for: reveal ? targetScale : 1) {
-                            print("animation completed")
-                        }
+                        .position(x: center.x, y: center.y)
+                        .scaleEffect(reveal ? targetScale : 1)
                 )
-                .animation(.easeOut(duration: 0.70), value: reveal) // smooth radial reveal
+                // keep the animation definition in one place
+                .animation(.easeOut(duration: animDuration), value: reveal)
             }
             .task {
+                // initial play after a small delay so you can see frame 1
                 try? await Task.sleep(nanoseconds: 250_000_000)
-                reveal = true
+                playOnce()
             }
             .onTapGesture {
-                // replay while testing
+                // tap to replay during testing
                 reveal = false
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { reveal = true }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                    playOnce()
+                }
             }
         }
     }
 
     private var ecoGreen: Color { Color(red: 0.33, green: 0.71, blue: 0.46) }
-}
 
-// MARK: - Animation completion helper
-private struct AnimationCompletionObserver<Value: VectorArithmetic>: AnimatableModifier {
-    var targetValue: Value
-    var onComplete: () -> Void
+    /// Plays the reveal and prints exactly once when it completes.
+    private func playOnce() {
+        cycle += 1
+        let myCycle = cycle
 
-    var animatableData: Value {
-        didSet {
-            // Use tolerance because floats interpolate
-            let diff = animatableData - targetValue
-            if diff.magnitudeSquared < 0.0001 {
-                // Copy the closure so the escaping block doesn't capture `self`
-                let completion = onComplete
-                DispatchQueue.main.async { completion() }   // prints: "animation completed"
+        // trigger the animation
+        reveal = true
+
+        // fire completion once per cycle after the known duration
+        Task {
+            // small buffer for rendering variance
+            let buffer: Double = 0.03
+            try? await Task.sleep(nanoseconds: UInt64((animDuration + buffer) * 1_000_000_000))
+            if myCycle == cycle && reveal {
+                print("animation completed")
+                onAnimationCompleted()
             }
         }
-    }
-
-    init(observedValue: Value, onComplete: @escaping () -> Void) {
-        self.onComplete = onComplete
-        self.animatableData = observedValue
-        self.targetValue = observedValue
-    }
-
-    func body(content: Content) -> some View { content }
-}
-
-private extension View {
-    func onAnimationCompleted<Value: VectorArithmetic>(
-        for value: Value,
-        perform action: @escaping () -> Void
-    ) -> some View {
-        modifier(AnimationCompletionObserver(observedValue: value, onComplete: action))
     }
 }
