@@ -86,7 +86,7 @@ struct EcoxAnimatingView: View {
             let buffer: Double = 0.03
             try? await Task.sleep(nanoseconds: UInt64((animDuration + buffer) * 1_000_000_000))
             if myCycle == cycle && reveal {
-                print("animation completed")
+                print("animation completed launch view")
                 onAnimationCompleted()
             }
         }
